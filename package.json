@@ -12,7 +12,7 @@
   "dependencies": {
     "dotenv": "^1.2.0",
     "inquirer": "^1.0.2",
-    "node-spotify-api": "^1.0.0",
+    "node-spotify-api": "^1.0.7",
     "request": "^1.0.0",
     "twitter": "^1.7.1"
   }
