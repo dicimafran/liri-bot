@@ -12,27 +12,41 @@
 Aims: 
     Make the CLI easy to read.
 
+=============== Lessons to Self ==============
+
 Notes to my cringey noob self: 
     - console.log('\n') will make spacing between text. Making separate a spacing variable for the first attempt wasn't efficient...
     - I can only make a .env file with command line because I can't use the usual rename method when looking through the folder
-    - Always use npm install --save for dependencies you want in your package.
+    - Always use npm install --save for dependencies you want in your package. 
 
-Progress: 
-    - OMDB
+Self-critiques for improvement:
+    - Initial loading is slow. How can I make it faster? 
+    - My aim was to make this bot functional at the expense of being immersed in callback hell.
+    - I know movie-this and spotify-this can be shortened. The following are the ways I think I can make it better.
+        > modules for export
+        > constructor functions
+
+
+================== Progress ========================
+
+    - Twitter- Finished. Shows last 20 tweets of my dummy account.
+
+    - OMDB- Finished
         - [x] get movie search to work and have info formatted
-        - [] if user doesn't provide input, have it default to 'Mr. Nobody
-        - [] if user input doesn't have a match default to Mr. Nobody
-
-    - Gotta get Spotify to work.
-        - [x] spotify key works
-        - [] spotify query works, but response needs refinement.
+        - [x] if user doesn't provide input, have it default to 'Mr. Nobody
         
-    - Do what it says command --> Need help
+    - Spotify this- WIP. 
+        - [x] spotify key works
+        - [wip] spotify query works, but response needs refinement. 
+                [] Somehow I have trouble searching artist and track at the same time. 'The Sign' does not lead to Ace of Base!
+                [] I gotta figure out how to access the object with a preview of the link from Spotify
+        
+    - Do what it says command --> NEED HELP
         - [x] read fs successful
-        - [] have spotify search for whatever's in random.txt. Might require promises in order to work.
-        - [] Trying to think of how to switch the case to 'spotify-this-song' via reading of the txt file. There may be problems with scope.
-
+        - [] have spotify search for whatever's in random.txt.
+        - [] Trying to think of how to switch the case to 'spotify-this-song' via reading of the txt file.
 */
+
 // =============== Dependencies ===================
 
 var dotenv = require('dotenv').config();
@@ -55,13 +69,14 @@ var spotify = new Spotify(keys.spotify);
 var line = ('--------------------------------------------');
 var dblLine = ('\n' + '===========================================' + '\n');
 
+
 // ================ CLI ============================
 
 inquirer.prompt([
     {
         type: 'list',
         message: '\n What do you want to do? \n',
-        choices: ['my-tweets', 'spotify-this-song', 'movie-this', 'do-what-it-says', '????? \n'],
+        choices: ['my-tweets', 'spotify-this-song', 'movie-this', 'do-what-it-says', '?????'],
         name: 'command'
     }
 
@@ -74,27 +89,27 @@ inquirer.prompt([
         case 'my-tweets':
             // Parameters set to limit tweet responses from my dummy twitter account.
             client.get('statuses/user_timeline', { screen_name: 'Horror_birds', count: 20 }, function (error, tweet, response) {
-                
+
                 if (error) throw error;
-               
+
                 if (!error) {
-                // Interesting. It seems that some languages don't show up. Index number and '\n' (aka spaces) added for readability.
-                console.log(dblLine);
-                console.log('\t Listing the last 20 tweets... \n');
+                    // Interesting. It seems that some languages don't show up. Index number and '\n' (aka spaces) added for readability.
+                    console.log(dblLine);
+                    console.log('\t Listing the last 20 tweets... \n');
 
                     for (i = 0; i < tweet.length; i++) {
                         console.log(line + '\n');
 
                         // Tweet number, text, and language. Note to self: the tweet number doesn't show up on some tweets correctly unless there are parentheses around both parseFloat integers.
-                        let tweetnumber= parseFloat([i]) + parseFloat(1); 
-                        
-                        console.log('\t\t Tweet '+ tweetnumber);
+                        let tweetnumber = parseFloat([i]) + parseFloat(1);
+
+                        console.log('\t\t Tweet ' + tweetnumber);
                         console.log('\n   ' + tweet[i].created_at);
                         console.log('\n   ' + tweet[i].text);
                         console.log('\n   ' + 'Language: ' + tweet[i].lang + '\n');
                     }
                 }
-                
+
             });
 
         break;
@@ -109,30 +124,66 @@ inquirer.prompt([
                         message: "Search a song.",
                         name: "song"
                     }
-                 
+
                 ]).then(function (inquirerResponse) {
-                    var songQuery = inquirerResponse.song;
-                     
-                    spotify
-                        .search( 
-                            {
-                                type: 'track',
-                                query: songQuery,
-                                limit: 3 
-                            }, 
-                            function(err, data) {
-                                if (err) {
+
+                    // Default search for nothing typed
+                    if (inquirerResponse.song === '') {
+                        spotify.search({ type: 'track', query: 'The Sign', limit: 1 }, function (err, data) {
+                            if (err) {
                                 return console.log('Error occurred: ' + err);
-                                }
-                            
-                            console.log(data.tracks.items[0].artists[0]); 
-                            });
+                            }
+
+                            if (!err) {
+                                //console.log(data)
+                                //console.log(data.tracks.items[0].name)
+
+                                let trackInfo = [
+                                    dblLine,
+                                    '\t Default search: The Sign',
+                                    line,
+                                    '  Artist: ' + data.tracks.items[0].artists[0].name,
+                                    '  Song Name: ' + data.tracks.items[0].name,
+                                    '  Album song is from: ' + data.tracks.items[0].album.name,
+                                    dblLine + '\n'
+                                ].join('\n\n');
+
+                                console.log(trackInfo);
+                            }
 
                         });
-        break;
+                    }
+
+                    // Search if something is typed.
+                    else {
+                        var songQuery = inquirerResponse.song;
+
+                        spotify.search({ type: 'track', query: songQuery, limit: 1 }, function (err, data) {
+                            if (err) {
+                                return console.log('Error occurred: ' + err);
+                            }
+
+                            else {
+                                let trackInfo = [
+                                    dblLine,
+                                        '\t You searched: ' + inquirerResponse.song,
+                                    line,
+                                        '  Artist: ' + data.tracks.items[0].artists[0].name,
+                                        '  Song Name: ' + data.tracks.items[0].name,
+                                        '  Album song is from: ' + data.tracks.items[0].album.name,
+                                    dblLine + '\n'
+                                ].join('\n\n')
+
+                                console.log(trackInfo);
+                            }
+                        });
+                    }
+
+                });
+            break;
 
     // ================ Movie search ========================= 
-    
+
         case 'movie-this':
 
             inquirer.prompt([
@@ -146,8 +197,40 @@ inquirer.prompt([
                 var movieQuery = 'http://www.omdbapi.com/?t=' + inquirerResponse.movieTitle + "&y=&plot=short&apikey=trilogy";
                 var defaultMovie = 'http://www.omdbapi.com/?t=' + 'Mr. Nobody' + "&y=&plot=short&apikey=trilogy";
 
-                request(movieQuery, function (error, response, body) {
-                    
+                if (inquirerResponse.movieTitle !==''){
+                    request(movieQuery, function (error, response, body) {
+
+                        // jBod stands for Jason Body
+                        var jBod = JSON.parse(body);
+
+                        // var movieDataArray= [Title, Year, idmbRating, Ratings, Country, Language, Plot, Actors]
+                        // Note to self: Joining by '\n\n' means each movieData array item will be separated by a new line before and after it.
+                        var movieData = [
+                            '  Title: ' + jBod.Title,
+                            '  imdb Rating: ' + jBod.imdbRating,
+                            '  Rotten Tomatoes Rating: ' + jBod.Ratings[2],
+                            '  Country: ' + jBod.Country,
+                            '  Language: ' + jBod.Language,
+                            '  Plot: ' + jBod.Plot,
+                            '  Actors: ' + jBod.Actors
+                        ].join("\n\n");
+
+                        if (!error & response.statusCode === 200) {
+                            //Formatting                    
+                            console.log(dblLine +'\t' + 'Listing Movie Info...' + '\n' + dblLine);
+
+                            // Movie data
+                            console.log(movieData + '\n' + dblLine);
+                        }
+
+                        if (error) {
+                            console.log(error)
+                        }
+                    });
+                }
+            else {
+                request(defaultMovie, function (error, response, body) {
+
                     // jBod stands for Jason Body
                     var jBod = JSON.parse(body);
 
@@ -163,27 +246,23 @@ inquirer.prompt([
                         '  Actors: ' + jBod.Actors
                     ].join("\n\n");
 
-                    if (!error & response.statusCode === 200) {
-                        
-                        // Formatting
-                        console.log(dblLine);
-                        console.log('\t' + 'Listing Movie Info...' + '\n' + dblLine);
-                        
-                        // Movie data
-                        console.log(movieData);
+                        if (!error & response.statusCode === 200) {
+                            //Formatting                    
+                            console.log(dblLine +'\t' + 'Listing Movie Info...' + '\n' + dblLine);
 
-                        // Formatting
-                        console.log(dblLine);
-                    }
+                            // Movie data
+                            console.log(movieData + '\n' + dblLine);
+                        }
 
-                    if (error) {
-                        console.log(error)                        
+                        if (error) {
+                            console.log(error)
+                        }
                     }
-                });
+                )};
+
             });
-
-        break;
-    // ====================== fs readfile + spotify ===========================
+            break;
+        // ====================== fs readfile + spotify ===========================
         case 'do-what-it-says':
 
             // Reading random.txt 
@@ -192,13 +271,14 @@ inquirer.prompt([
                     return console.log(error);
                 }
 
-                var randomSplit= data.split(',');
-                console.log(randomSplit);
-               
+                if (!error) {
+                    var randomSplit = data.split(',');
+                    console.log(randomSplit);
+                }
+
             })
 
-    
-        break;
+            break;
 
         default:
             console.log('\n' + 'Sorry. I don\'t understand your request.' + '\n');
