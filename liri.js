@@ -39,7 +39,7 @@ Self-critiques for improvement:
         - [x] spotify key works
         - [wip] spotify query works, but response needs refinement. 
                 [] Somehow I have trouble searching artist and track at the same time. 'The Sign' does not lead to Ace of Base!
-                [] I gotta figure out how to access the object with a preview of the link from Spotify
+                [] preview of the link from Spotify is needed. Gotta find out how to access it.
         
     - Do what it says command --> NEED HELP
         - [x] read fs successful
