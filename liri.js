@@ -88,29 +88,8 @@ inquirer.prompt([
 
         case 'my-tweets':
             // Parameters set to limit tweet responses from my dummy twitter account.
-            client.get('statuses/user_timeline', { screen_name: 'Horror_birds', count: 20 }, function (error, tweet, response) {
-
-                if (error) throw error;
-
-                if (!error) {
-                    // Interesting. It seems that some languages don't show up. Index number and '\n' (aka spaces) added for readability.
-                    console.log(dblLine);
-                    console.log('\t Listing the last 20 tweets... \n');
-
-                    for (i = 0; i < tweet.length; i++) {
-                        console.log(line + '\n');
-
-                        // Tweet number, text, and language. Note to self: the tweet number doesn't show up on some tweets correctly unless there are parentheses around both parseFloat integers.
-                        let tweetnumber = parseFloat([i]) + parseFloat(1);
-
-                        console.log('\t\t Tweet ' + tweetnumber);
-                        console.log('\n   ' + tweet[i].created_at);
-                        console.log('\n   ' + tweet[i].text);
-                        console.log('\n   ' + 'Language: ' + tweet[i].lang + '\n');
-                    }
-                }
-
-            });
+            getTweets();
+            
 
         break;
 
@@ -129,54 +108,13 @@ inquirer.prompt([
 
                     // Default search for nothing typed
                     if (inquirerResponse.song === '') {
-                        spotify.search({ type: 'track', query: 'The Sign', limit: 1 }, function (err, data) {
-                            if (err) {
-                                return console.log('Error occurred: ' + err);
-                            }
-
-                            if (!err) {
-                                //console.log(data)
-                                //console.log(data.tracks.items[0].name)
-
-                                let trackInfo = [
-                                    dblLine,
-                                    '\t Default search: The Sign',
-                                    line,
-                                    '  Artist: ' + data.tracks.items[0].artists[0].name,
-                                    '  Song Name: ' + data.tracks.items[0].name,
-                                    '  Album song is from: ' + data.tracks.items[0].album.name,
-                                    dblLine + '\n'
-                                ].join('\n\n');
-
-                                console.log(trackInfo);
-                            }
-
-                        });
+                        spotifySearch('The Sign')
                     }
 
                     // Search if something is typed.
                     else {
                         var songQuery = inquirerResponse.song;
-
-                        spotify.search({ type: 'track', query: songQuery, limit: 1 }, function (err, data) {
-                            if (err) {
-                                return console.log('Error occurred: ' + err);
-                            }
-
-                            else {
-                                let trackInfo = [
-                                    dblLine,
-                                        '\t You searched: ' + inquirerResponse.song,
-                                    line,
-                                        '  Artist: ' + data.tracks.items[0].artists[0].name,
-                                        '  Song Name: ' + data.tracks.items[0].name,
-                                        '  Album song is from: ' + data.tracks.items[0].album.name,
-                                    dblLine + '\n'
-                                ].join('\n\n')
-
-                                console.log(trackInfo);
-                            }
-                        });
+                        spotifySearch(songQuery)
                     }
 
                 });
@@ -194,72 +132,19 @@ inquirer.prompt([
                 }
             ]).then(function (inquirerResponse) {
 
-                var movieQuery = 'http://www.omdbapi.com/?t=' + inquirerResponse.movieTitle + "&y=&plot=short&apikey=trilogy";
-                var defaultMovie = 'http://www.omdbapi.com/?t=' + 'Mr. Nobody' + "&y=&plot=short&apikey=trilogy";
-
-                if (inquirerResponse.movieTitle !==''){
-                    request(movieQuery, function (error, response, body) {
-
-                        // jBod stands for Jason Body
-                        var jBod = JSON.parse(body);
-
-                        // var movieDataArray= [Title, Year, idmbRating, Ratings, Country, Language, Plot, Actors]
-                        // Note to self: Joining by '\n\n' means each movieData array item will be separated by a new line before and after it.
-                        var movieData = [
-                            '  Title: ' + jBod.Title,
-                            '  imdb Rating: ' + jBod.imdbRating,
-                            '  Rotten Tomatoes Rating: ' + jBod.Ratings[2],
-                            '  Country: ' + jBod.Country,
-                            '  Language: ' + jBod.Language,
-                            '  Plot: ' + jBod.Plot,
-                            '  Actors: ' + jBod.Actors
-                        ].join("\n\n");
-
-                        if (!error & response.statusCode === 200) {
-                            //Formatting                    
-                            console.log(dblLine +'\t' + 'Listing Movie Info...' + '\n' + dblLine);
-
-                            // Movie data
-                            console.log(movieData + '\n' + dblLine);
-                        }
-
-                        if (error) {
-                            console.log(error)
-                        }
-                    });
+                var movieQuery= {
+                    userMovieQuery: 'http://www.omdbapi.com/?t=' + inquirerResponse.movieTitle + "&y=&plot=short&apikey=trilogy",
+                    defaultMovie: 'http://www.omdbapi.com/?t=' + 'Mr. Nobody' + "&y=&plot=short&apikey=trilogy"
+                }                                                            
+                              
+                if (inquirerResponse.movieTitle !== '') {
+                    movieSearch(movieQuery.userMovieQuery)
                 }
-            else {
-                request(defaultMovie, function (error, response, body) {
-
-                    // jBod stands for Jason Body
-                    var jBod = JSON.parse(body);
-
-                    // var movieDataArray= [Title, Year, idmbRating, Ratings, Country, Language, Plot, Actors]
-                    // Note to self: Joining by '\n\n' means each movieData array item will be separated by a new line before and after it.
-                    var movieData = [
-                        '  Title: ' + jBod.Title,
-                        '  imdb Rating: ' + jBod.imdbRating,
-                        '  Rotten Tomatoes Rating: ' + jBod.Ratings[2],
-                        '  Country: ' + jBod.Country,
-                        '  Language: ' + jBod.Language,
-                        '  Plot: ' + jBod.Plot,
-                        '  Actors: ' + jBod.Actors
-                    ].join("\n\n");
-
-                        if (!error & response.statusCode === 200) {
-                            //Formatting                    
-                            console.log(dblLine +'\t' + 'Listing Movie Info...' + '\n' + dblLine);
-
-                            // Movie data
-                            console.log(movieData + '\n' + dblLine);
-                        }
-
-                        if (error) {
-                            console.log(error)
-                        }
-                    }
-                )};
-
+                
+                else {               
+                   movieSearch(movieQuery.defaultMovie)            
+                }
+                    
             });
             break;
         // ====================== fs readfile + spotify ===========================
@@ -273,7 +158,8 @@ inquirer.prompt([
 
                 if (!error) {
                     var randomSplit = data.split(',');
-                    console.log(randomSplit);
+                    //console.log(randomSplit);
+                    spotifySearch(randomSplit[1])
                 }
 
             })
@@ -284,3 +170,91 @@ inquirer.prompt([
             console.log('\n' + 'Sorry. I don\'t understand your request.' + '\n');
     }
 });
+
+// =============================== Functions ================================
+
+function getTweets() {
+    client.get('statuses/user_timeline', { screen_name: 'Horror_birds', count: 20 }, function (error, tweet, response) {
+
+        if (error) throw error;
+
+        if (!error) {
+            // Interesting. It seems that some languages don't show up. Index number and '\n' (aka spaces) added for readability.
+            console.log(dblLine);
+            console.log('\t Listing the last 20 tweets... \n');
+
+            for (i = 0; i < tweet.length; i++) {
+                console.log(line + '\n');
+
+                // Tweet number, text, and language. Note to self: the tweet number doesn't show up on some tweets correctly unless there are parentheses around both parseFloat integers.
+                let tweetnumber = parseFloat([i]) + parseFloat(1);
+
+                console.log('\t\t Tweet ' + tweetnumber);
+                console.log('\n   ' + tweet[i].created_at);
+                console.log('\n   ' + tweet[i].text);
+                console.log('\n   ' + 'Language: ' + tweet[i].lang + '\n');
+            }
+        }
+
+    });
+};
+
+function movieSearch(movieQuery){
+    
+    request(movieQuery, function (error, response, body) {
+
+        // jBod stands for Jason Body
+        var jBod = JSON.parse(body);
+
+        // var movieDataArray= [Title, Year, idmbRating, Ratings, Country, Language, Plot, Actors]
+        // Note to self: Joining by '\n\n' means each movieData array item will be separated by a new line before and after it.
+        var movieData = [
+            '  Title: ' + jBod.Title,
+            '  imdb Rating: ' + jBod.imdbRating,
+            '  Rotten Tomatoes Rating: ' + jBod.Ratings[2],
+            '  Country: ' + jBod.Country,
+            '  Language: ' + jBod.Language,
+            '  Plot: ' + jBod.Plot,
+            '  Actors: ' + jBod.Actors
+        ].join("\n\n");
+
+        if (!error & response.statusCode === 200) {
+            //Formatting
+            console.log(dblLine + '\t' + 'Listing Movie Info...' + '\n' + dblLine);
+
+            // Movie data
+            console.log(movieData + '\n' + dblLine);
+        }
+
+        if (error) {
+            console.log(error)
+        }
+    });
+}
+
+
+function spotifySearch(query) {
+    spotify.search({ type: 'track', query, limit: 1 }, function (err, data) {
+        if (err) {
+            return console.log('Error occurred: ' + err);
+        }
+
+        if (!err) {
+            //console.log(data)
+            //console.log(data.tracks.items[0].name)
+
+            let trackInfo = [
+                dblLine,
+                '\t Default search: The Sign',
+                line,
+                '  Artist: ' + data.tracks.items[0].artists[0].name,
+                '  Song Name: ' + data.tracks.items[0].name,
+                '  Album song is from: ' + data.tracks.items[0].album.name,
+                dblLine + '\n'
+            ].join('\n\n');
+
+            console.log(trackInfo);
+        }
+
+    });
+}
