@@ -135,15 +135,15 @@ inquirer.prompt([
                 var movieQuery= {
                     userMovieQuery: 'http://www.omdbapi.com/?t=' + inquirerResponse.movieTitle + "&y=&plot=short&apikey=trilogy",
                     defaultMovie: 'http://www.omdbapi.com/?t=' + 'Mr. Nobody' + "&y=&plot=short&apikey=trilogy"
+                    
                 }                                                            
                               
                 if (inquirerResponse.movieTitle !== '') {
                     movieSearch(movieQuery.userMovieQuery)
-                }
-                
+                }                
                 else {               
                    movieSearch(movieQuery.defaultMovie)            
-                }
+                };
                     
             });
             break;
@@ -157,12 +157,16 @@ inquirer.prompt([
                 }
 
                 if (!error) {
-                    var randomSplit = data.split(',');
-                    //console.log(randomSplit);
-                    spotifySearch(randomSplit[1])
-                }
-
-            })
+                    let randomSplit = data.split(',');
+                    const randomQuery = 'http://www.omdbapi.com/?t=' + randomSplit[1] + "&y=&plot=short&apikey=trilogy"
+                
+                    if (randomSplit[0] == 'spotify-this'){
+                        spotifySearch(randomSplit[1])
+                    } else {
+                        movieSearch(randomQuery)
+                        };
+                };
+            });
 
             break;
 
@@ -227,7 +231,7 @@ function movieSearch(movieQuery){
         }
 
         if (error) {
-            console.log(error)
+            console.log(error);
         }
     });
 }
@@ -244,8 +248,7 @@ function spotifySearch(query) {
             //console.log(data.tracks.items[0].name)
 
             let trackInfo = [
-                dblLine,
-                '\t Default search: The Sign',
+                
                 line,
                 '  Artist: ' + data.tracks.items[0].artists[0].name,
                 '  Song Name: ' + data.tracks.items[0].name,
@@ -254,7 +257,7 @@ function spotifySearch(query) {
             ].join('\n\n');
 
             console.log(trackInfo);
-        }
+        };
 
     });
 }
